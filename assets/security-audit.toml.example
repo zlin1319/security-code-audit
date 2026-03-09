@@ -1,0 +1,14 @@
+path = "./src"
+language = "other"
+ruleset = "all"
+confidence = "medium"
+report_lang = "zh"
+use_ai = false
+auto_ai = false
+git_diff_range = "origin/main...HEAD"
+exclude = ["vendor/*", "dist/*", "**/generated/*"]
+ignore_file = ".security-audit.ignore"
+
+# Optional:
+# output = "reports/security-audit"
+# changed_files = ["src/app.py", "src/server.js"]

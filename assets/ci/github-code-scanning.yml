@@ -1,0 +1,69 @@
+name: Security Code Audit
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run security audit
+        id: scan
+        shell: bash
+        run: |
+          set +e
+          OUTPUT_DIR="reports/security-audit"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            python3 -m security_code_audit \
+              --path . \
+              --language other \
+              --ruleset all \
+              --git-diff-range "${{ github.event.pull_request.base.sha }}...${{ github.sha }}" \
+              --output "$OUTPUT_DIR"
+          else
+            python3 -m security_code_audit \
+              --path . \
+              --language other \
+              --ruleset all \
+              --output "$OUTPUT_DIR"
+          fi
+          scan_exit_code=$?
+          echo "scan_exit_code=$scan_exit_code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload SARIF to GitHub code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/security-audit/audit-report.sarif
+          category: security-code-audit
+
+      - name: Upload human-readable reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-reports
+          path: reports/security-audit/
+
+      - name: Preserve scan exit code
+        if: always()
+        shell: bash
+        run: exit "${{ steps.scan.outputs.scan_exit_code }}"

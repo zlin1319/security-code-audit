@@ -1,0 +1,38 @@
+security_audit:
+  image: python:3.12
+  stage: test
+  before_script:
+    - python --version
+    - git fetch origin "$CI_DEFAULT_BRANCH" || true
+  script:
+    - |
+      set +e
+      OUTPUT_DIR="reports/security-audit"
+      if [ -n "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" ]; then
+        python -m security_code_audit \
+          --path . \
+          --language other \
+          --ruleset all \
+          --git-diff-range "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME...$CI_COMMIT_SHA" \
+          --output "$OUTPUT_DIR"
+      else
+        python -m security_code_audit \
+          --path . \
+          --language other \
+          --ruleset all \
+          --output "$OUTPUT_DIR"
+      fi
+      scan_exit_code=$?
+      echo "$scan_exit_code" > reports/security-audit/exit-code.txt
+      exit 0
+  artifacts:
+    when: always
+    paths:
+      - reports/security-audit/audit-report.sarif
+      - reports/security-audit/audit-report.json
+      - reports/security-audit/audit-report.md
+      - reports/security-audit/exit-code.txt
+
+# Note:
+# GitLab native Security Dashboard expects GitLab Secure report JSON, not SARIF.
+# This template publishes SARIF and companion reports as CI artifacts for MR review.

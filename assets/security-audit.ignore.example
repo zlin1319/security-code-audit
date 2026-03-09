@@ -1,0 +1,5 @@
+# Ignore generated and vendored code
+vendor/*
+dist/*
+**/generated/*
+**/*.min.js

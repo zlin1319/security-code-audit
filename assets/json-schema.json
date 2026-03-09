@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Security Audit Report Schema",
+  "type": "object",
+  "required": ["scan_info", "summary", "findings"],
+  "properties": {
+    "scan_info": {
+      "type": "object",
+      "required": ["target_path", "language", "scan_date", "ruleset", "version"],
+      "properties": {
+        "target_path": { "type": "string" },
+        "language": { "type": "string", "enum": ["java", "javascript", "typescript", "python", "other"] },
+        "scan_date": { "type": "string", "format": "date-time" },
+        "ruleset": { "type": "string", "enum": ["top25", "owasp", "top10", "all"] },
+        "version": { "type": "string" },
+        "total_files": { "type": "integer", "minimum": 0 },
+        "total_loc": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total_findings", "severity_counts"],
+      "properties": {
+        "total_findings": { "type": "integer", "minimum": 0 },
+        "severity_counts": {
+          "type": "object",
+          "properties": {
+            "critical": { "type": "integer", "minimum": 0 },
+            "high": { "type": "integer", "minimum": 0 },
+            "medium": { "type": "integer", "minimum": 0 },
+            "low": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "confidence_counts": {
+          "type": "object",
+          "properties": {
+            "high": { "type": "integer", "minimum": 0 },
+            "medium": { "type": "integer", "minimum": 0 },
+            "low": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rule_id", "cwe", "severity", "confidence", "file", "line_range", "evidence_snippet", "reasoning", "fix_guidance"],
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+-[0-9]+$"
+          },
+          "cwe": {
+            "type": "string",
+            "pattern": "^CWE-[0-9]+$"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low"]
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["high", "medium", "low"]
+          },
+          "file": { "type": "string" },
+          "line_range": {
+            "type": "object",
+            "required": ["start", "end"],
+            "properties": {
+              "start": { "type": "integer", "minimum": 1 },
+              "end": { "type": "integer", "minimum": 1 }
+            }
+          },
+          "sink_source_summary": { "type": "string" },
+          "evidence_snippet": { "type": "string" },
+          "reasoning": { "type": "string" },
+          "fix_guidance": { "type": "string" },
+          "safe_fix_example": { "type": "string" }
+        }
+      }
+    }
+  }
+}
